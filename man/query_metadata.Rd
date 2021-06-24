@@ -4,17 +4,32 @@
 \alias{query_metadata}
 \title{query omicidx API for studies based on lucene query}
 \usage{
-query_metadata(luceneq, cursor_string = "my_cursor")
+query_metadata(luceneq, component = "StudiesSraStudiesGet", size = 10, ...)
 }
 \arguments{
 \item{luceneq}{character(1) query in lucene syntax}
+
+\item{component}{character(1) API component to use, defaults to `StudiesSraStudiesGet`}
 
 \item{\dots}{passed to omicidxClientR::ExperimentsSraExperimentsGet}
 }
 \description{
 query omicidx API for studies based on lucene query
 }
+\note{
+Queries for "nested" fields like organism within sample are handled in the third example.
+}
 \examples{
+# example 1
 x = query_metadata("cancer")
-str(httr::response(x))
+x
+sapply(x$hits, "[[", "title")
+# example 2 fix on RNA-seq
+y = query_metadata('cancer AND library_strategy:"RNA-Seq"', 
+   component="ExperimentsSraExperimentsGet")
+table(sapply(y$hits, "[[", "library_strategy"))
+# example 3 fix on RNA-seq in humans
+yy =query_metadata('cancer AND library_strategy:"RNA-Seq" AND sample.organism:"Homo sapiens"',
+  component="ExperimentsSraExperimentsGet", size=100)
+table(sapply(yy$hits, function(x) x$sample[,"organism"]))
 }
