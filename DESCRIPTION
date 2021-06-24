@@ -1,0 +1,18 @@
+Package: SraInAnVIL
+Title: High-resolution exploration of SRA metadata and RNA-seq in AnVIL
+Version: 0.0.1
+Authors@R:
+    person(given = "Vince",
+           family = "Carey",
+           role = c("aut", "cre"),
+           email = "stvjc@channing.harvard.edu",
+           comment = c(ORCID = "0000-0003-4046-0063"))
+Description: High-resolution exploration of SRA metadata and RNA-seq in AnVIL
+Depends: R (>= 4.0.0), tools, utils
+Suggests: knitr, BiocStyle, testthat, rmarkdown
+License: Artistic-2.0
+VignetteBuilder: knitr
+biocViews: Annotation, Infrastructure
+Remotes: waldronlab/omicidxClientR
+RoxygenNote: 7.1.1
+Encoding: UTF-8
