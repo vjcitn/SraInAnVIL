@@ -1,0 +1,66 @@
+---
+title: "SraInAnVIL: roles of omicidx, recount3, and HDF Highly Scalable Data Services" 
+shorttitle: "outlier dytection methods"
+author: "Vincent J. Carey, stvjc at channing.harvard.edu"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{SraInAnVIL: roles of omicidx, recount3, and HDF Highly Scalable Data Services}
+  %\VignetteEncoding{UTF-8}
+output:
+  BiocStyle::html_document:
+    highlight: pygments
+    number_sections: yes
+    theme: united
+    toc: yes
+---
+
+# Introduction
+
+This package explores how to use metadata, large-scale curation
+of RNA-seq quantifications, and a scalable data service
+to explore processed transcriptomic data with AnVIL.
+
+## SRA metadata service: omicidx
+
+NCBI Sequence Read Archive (SRA) collects outcomes of NIH-funded sequencing
+experiments.  Metadata about SRA assets are available "in the cloud", but
+interrogation of these assets involves commercial database operations
+and costs are not readily predicted.  See, for example, these
+comments on [AWS Athena pricing](https://aws.amazon.com/athena/pricing/).
+
+Dr. Sean Davis of the University of Colorado has established a process
+for harvesting SRA metadata.  The [Omicidx API](http://omicidx.cancerdatasci.org/docs/open-web-api/)
+can be used freely to obtain detailed metadata at various levels: studies,
+experiments, runs.
+
+## recount3
+
+From the [recount3 project](https://rna.recount.bio/):
+
+*Recount3 is an online resource consisting of RNA-seq gene, exon, and exon-exon junction counts as well as coverage bigWig files for 8,679 and 10,088 different studies for human and mouse respectively. It is the third generation of the ReCount project and part of recount.bio.*
+
+*The raw sequencing data were processed with the Monorail system as described in the recount3 paper which created the coverage bigWig files and the recount-unified text files. While these raw output files are available through IDIES SciServer, for ease of statistical analysis, we provide through the [recount3](http://www.bioconductor.org/packages/recount3) R/Bioconductor package an interface that builds RangedSummarizedExperiment R objects for gene, exon, and exon-exon junction counts for each study. Furthermore, [snapcount](https://rna.recount.bio/docs/quick-access.html#quick-snapcount) enables query-based access of the recount3 and recount2 data. The coverage bigWig files can be used for annotation-agnostic expression analyses using for example megadepth, derfinder and other tools.*
+
+## HDF Highly Scalable Data Service
+
+From the [HDF Group description of HSDS](https://www.hdfgroup.org/solutions/highly-scalable-data-service-hsds/):
+
+*HSDS is a REST-based solution for reading and writing complex binary data formats within object-based storage environments such as the Cloud. Developed to make large datasets accessible in a manner that’s both fast and cost-effective, HSDS stores HDF5 file using a sharded data schema, but provides the functionality traditionally offered by the HDF5 library as accessible by any HTTP client. HSDS is open source software, licensed under the Apache License 2.0. Managed HSDS products, support, and consulting is offered through HDF Group’s Kita Data Products & Solutions.*
+
+# Using the omicidx metadata service
+
+The omicidx metadata service has a REST API that can process
+queries in lucene syntax.  An R client for the API was produced
+by Samuel Gamboa-Tuz, using the [OpenAPI generator](https://openapi-generator.tech/).
+
+```{r startmeta}
+suppressPackageStartupMessages({
+library(SraInAnVIL)
+library(DT)
+})
+tst1 = query_metadata('cancer AND library_strategy:"RNA-Seq" AND sample.organism:"Homo sapiens"',
+   component="ExperimentsSraExperimentsGet", size=100)
+tab1 = do.call(rbind, tst1$hits)
+datatable(select(tab1, !c(library_construction_protocol,identifiers,attributes,study,xrefs,sample)))
+```
