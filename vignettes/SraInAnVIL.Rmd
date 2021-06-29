@@ -59,8 +59,23 @@ suppressPackageStartupMessages({
 library(SraInAnVIL)
 library(DT)
 })
-tst1 = query_metadata('cancer AND library_strategy:"RNA-Seq" AND sample.organism:"Homo sapiens"',
-   component="ExperimentsSraExperimentsGet", size=100)
+```
+We set up a query, retrieve the 'hits' component, and produce an interactive
+table.  Some columns have substructure and are dropped from the searchable
+display.
+
+```{r dometa1}
+tst1 = query_metadata(
+   'cancer AND library_strategy:"RNA-Seq" AND sample.organism:"Homo sapiens"',
+    component="ExperimentsSraExperimentsGet", size=100)
 tab1 = do.call(rbind, tst1$hits)
-datatable(select(tab1, !c(library_construction_protocol,identifiers,attributes,study,xrefs,sample)))
+datatable(select(tab1, !c(library_construction_protocol,
+   identifiers,attributes,study,xrefs,sample)))
+```
+
+Here are illustrations of substructure in the
+first hit:
+```{r lkhit}
+t(tab1[1, "sample"])
+t(tab1[1,"sample"])["attributes",][[1]][1:3,]
 ```
