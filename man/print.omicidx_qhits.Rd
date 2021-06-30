@@ -6,6 +6,11 @@
 \usage{
 \method{print}{omicidx_qhits}(x, ...)
 }
+\arguments{
+\item{x}{instance of `omicidx_qhits`}
+
+\item{\dots}{not used}
+}
 \description{
 display hits from omicidx query
 }

@@ -69,7 +69,7 @@ tst1 = query_metadata(
    'cancer AND library_strategy:"RNA-Seq" AND sample.organism:"Homo sapiens"',
     component="ExperimentsSraExperimentsGet", size=100)
 tab1 = do.call(rbind, tst1$hits)
-datatable(select(tab1, !c(library_construction_protocol,
+datatable(dplyr::select(tab1, !c(library_construction_protocol,
    identifiers,attributes,study,xrefs,sample)))
 ```
 
@@ -78,4 +78,89 @@ first hit:
 ```{r lkhit}
 t(tab1[1, "sample"])
 t(tab1[1,"sample"])["attributes",][[1]][1:3,]
+```
+
+# Using recount3
+
+Recount3 resources can be used in a number of ways.  The fundamental
+data resource is the collection of BigWig files with coverage vectors.
+This can be regarded as "annotation-free" data on RNA abundance.
+Later developments of this package will explore this.
+
+Read counts are summarized at the gene level after alignment using 
+STAR and summarization using megadepth.  These counts are
+made available at the SRA project level using `create_rse`.
+
+In the following we select a study and produce a SummarizedExperiment.
+
+```{r lkreco}
+tab1[100,]$study[,c("title", "accession")]
+suppressPackageStartupMessages({
+library(recount3)
+})
+suppressMessages({
+aproj = available_projects()
+})
+sum(aproj$n_samples)
+table(aproj$organism)
+erpind = grep("ERP013700", aproj[,1])
+suppressMessages({
+ovse = create_rse(aproj[erpind,])
+ovse
+})
+```
+
+We extract the count data for YY1 gene and examine values over samples.
+
+```{r lkgenereco}
+yy1ind_recount = which(rowData(ovse)$gene_name == "YY1")
+plot(yyvec_reco <- as.numeric(assay(ovse[yy1ind_recount,])))
+names(yyvec_reco) = ovse$sra.experiment_acc
+head(yyvec_reco)
+```
+
+# Using HumanTranscriptomeCompendium
+
+Dr Sean Davis of U Colorado Anschuetz School of Medicine
+devised a cloud-based workflow for producing salmon-based
+quantifications of all RNA-seq experiments in SRA up to 2018.
+A subset of gene-level quantifications were transformed
+to HDF5 and imported to the HDF Scalable Data Service with
+the assistance of John Readey of the HDF Group.
+
+This system gives us a view of 181134 RNA-seq experiments
+in a unified RangedSummarizedExperiment structure.
+The SummarizedExperiment is produced with `htx_load()`,
+which can be run in any R session with an
+internet connection; the "back end" is in the AWS cloud.
+
+```{r lkhtx}
+suppressPackageStartupMessages({
+library(HumanTranscriptomeCompendium)
+library(rhdf5client)
+library(Matrix)
+library(DelayedArray)
+})
+hco = addRD(htx_load())
+options(digits=3)
+assay(hco)
+```
+
+NCBI Study Accession numbers can be used to pull out
+samples of interest.
+
+```{r subset}
+hcoov = hco[ , which(hco$study_accession == "ERP013700")]
+yy1ind_htx = which(rowData(hcoov)$gene_name=="YY1")
+yyvec_hco = as.numeric(assay(hcoov[yy1ind_htx,]))
+names(yyvec_hco) = colnames(hcoov)
+head(yyvec_hco)
+```
+
+We compare the salmon-based quantifications in HSDS to the STAR/megadepth
+quantifications from recount3:
+
+```{r docomp}
+okdat = intersect(names(yyvec_hco), names(yyvec_reco))
+plot(yyvec_hco[okdat], yyvec_reco[okdat])
 ```

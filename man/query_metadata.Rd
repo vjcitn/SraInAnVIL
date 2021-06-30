@@ -11,13 +11,19 @@ query_metadata(luceneq, component = "StudiesSraStudiesGet", size = 10, ...)
 
 \item{component}{character(1) API component to use, defaults to `StudiesSraStudiesGet`}
 
+\item{size}{numeric(1) number of records to return, defaults to 10.}
+
 \item{\dots}{passed to omicidxClientR::ExperimentsSraExperimentsGet}
+}
+\value{
+list with S3 class `omicidx_qhits`, elements are hits, obj, query, time.
 }
 \description{
 query omicidx API for studies based on lucene query
 }
 \note{
 Queries for "nested" fields like organism within sample are handled in the third example.
+Cursor information will be present in `obj` element of the return value.
 }
 \examples{
 # example 1
